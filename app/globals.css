@@ -294,3 +294,16 @@ section { padding: 56px 0; }
   .photo-hero h1::after { margin-top: 10px; }
   .photo-hero .btn { min-height: 56px; padding-top: 12px; padding-bottom: 12px; }
 }
+
+/* Contact form (Contact tab only): fields + note verbatim from the tab.
+   18px labels/inputs, theme navy/gold, no invented wording. */
+.contact-form { max-width: 640px; margin: 28px 0 8px; }
+.contact-form .field { margin-bottom: 18px; }
+.contact-form label { display: block; font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.contact-form input,
+.contact-form textarea { width: 100%; font-size: 18px; font-family: inherit; line-height: 1.5; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.contact-form input:focus,
+.contact-form textarea:focus { outline: 2px solid var(--amber); border-color: var(--amber); }
+.contact-form textarea { resize: vertical; }
+.contact-form .btn { margin-top: 6px; }
+.contact-form .form-note { margin-top: 18px; }

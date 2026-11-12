@@ -88,6 +88,13 @@ export default function RootLayout({ children }) {
                 <p className="fbrand">Water Damage Restoration Chesterfield, MO</p>
                 <p>Local West County crew serving Chesterfield in ZIP codes 63017 and 63005. Call at any hour and a crew is dispatched immediately.</p>
                 <p><a href={PHONE_HREF}>Call {PHONE}</a></p>
+                {/* Doc routes: /services/, /about/ and /contact/ are linked from
+                    here on every page so none of them is an orphan (the About tab
+                    links to Services + Contact, the Contact tab to Services, and
+                    nothing in the doc links TO /about/). */}
+                <p>
+                  <a href="/services">Services</a> &nbsp;·&nbsp; <a href="/about">About</a> &nbsp;·&nbsp; <a href="/contact">Contact</a>
+                </p>
               </div>
               <div>
                 <p className="fbrand">Services</p>
