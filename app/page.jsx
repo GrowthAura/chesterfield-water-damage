@@ -1,5 +1,13 @@
-import { PHONE, PHONE_HREF, SERVICES, SERVICE_GROUPS, SITE_URL, serviceCardImage } from '../lib/services';
+import { PHONE, PHONE_HREF, SERVICES, SERVICE_GROUPS, SITE_URL } from '../lib/services';
 import { graph, webPageNode } from '../lib/schema';
+import FaqAccordion from '../components/FaqAccordion';
+
+// Homepage — Tab 1 content verbatim (Google Doc 12dYGumIIv7bzU1K3bo0w4qy7Ws9-3pZLXsONQn9FwUg).
+// Nothing invented, no new visible words. Two fixes vs the old build:
+// (1) features-band bold headings are the doc's FULL verbatim sentences,
+//     not the compressions "Work starts on arrival" / "Drying checked daily";
+// (2) no hero <img> — slots are honestly empty until the image phase
+//     installs a real photo (no img tag, no empty box).
 
 const FAQ = [
   { q: 'How fast can a crew get to my house in Chesterfield?', a: 'The crew is dispatched immediately when you call, at any hour. Arrival depends on where you are and road conditions, and you are told the expected time on the phone.' },
@@ -10,11 +18,11 @@ const FAQ = [
   { q: 'Do you handle commercial buildings in Chesterfield Valley?', a: 'Yes. Retail, office, medical, warehouse and hangar space are all handled, with after-hours scheduling so tenants can stay open.' },
 ];
 
-// ONE @graph for the homepage, @id-linked: WebPage (with Speakable for the
-// hero intro + FAQ) + FAQPage (6 visible Q+A) + HowTo for the visible
-// 5-step process section "What happens after you call" — step titles/text
-// are the visible step headings + paragraphs, verbatim. Rendered page has
-// 5 steps (DO-DONT-LIST says 6, Round 4 says 5 — the rendered page rules).
+// ONE @graph for the homepage, @id-linked: WebPage + FAQPage (6 visible
+// Q+A) + HowTo for the visible 5-step process "What happens after you
+// call" — step titles/text are the visible step headings + paragraphs,
+// verbatim. The business node (HomeAndConstructionBusiness, a
+// LocalBusiness subtype) is emitted site-wide from the layout.
 const HOME_URL = `${SITE_URL}/`;
 const faqSchema = {
   '@type': 'FAQPage',
@@ -34,10 +42,7 @@ const howToSchema = {
   ],
 };
 const homeGraph = graph([
-  webPageNode(HOME_URL, 'Water Damage Restoration Chesterfield', {
-    '@type': 'SpeakableSpecification',
-    cssSelector: ['.photo-hero .lede', '.faq-item h3', '.faq-item p'],
-  }),
+  webPageNode(HOME_URL, 'Water Damage Restoration Chesterfield'),
   faqSchema,
   howToSchema,
 ]);
@@ -49,21 +54,16 @@ function bySlug(slug) {
 export default function HomePage() {
   return (
     <>
-      {/* Homepage-only canonical + og:url with the trailing slash (homepage is
-          the only slash URL). Next.js metadata normalizes both down to the bare
-          origin (Pass A D4), so they are emitted here as explicit tags — Next
-          hoists them into <head>. Service pages keep their own metadata tags. */}
+      {/* Homepage-only canonical + og:url with the trailing slash (homepage
+          is the only slash URL). Next.js metadata normalizes both down to
+          the bare origin, so they are emitted here as explicit tags. */}
       <link rel="canonical" href={`${SITE_URL}/`} />
       <meta property="og:url" content={`${SITE_URL}/`} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeGraph) }} />
 
-      {/* 1. Hero — full-bleed DARK photographic hero (real-photo round 2026-11-10):
-          the real hero photo as background + dark overlay, intro INSIDE the hero,
-          2 equal buttons, the 4 trust phrases as plain chips (the standalone
-          trust band is removed — same phrases, no duplication). */}
+      {/* 1. Hero — dark band, no photo (slot honestly empty). Intro INSIDE
+          the hero, 2 equal buttons, the 4 trust phrases as plain chips. */}
       <section className="photo-hero">
-        <img className="photo-hero-bg" src="/images/chesterfield-hero-water-extraction.webp" alt="Workers wading through floodwater around a pump truck with hoses and pumping equipment" width="1200" height="675" fetchPriority="high" />
-        <div className="photo-hero-overlay" aria-hidden="true" />
         <div className="wrap photo-hero-content">
           <p className="eyebrow">Water Damage Restoration &bull; Chesterfield, Missouri</p>
           <h1>24/7 Emergency Water Damage Restoration in Chesterfield, MO</h1>
@@ -82,7 +82,7 @@ export default function HomePage() {
       </section>
 
       {/* 3. Intro */}
-      <section>
+      <section className="section">
         <div className="wrap">
           <h2>Who do you call for water damage in Chesterfield, MO when a basement floods overnight?</h2>
           <p>Call a local water damage crew that answers around the clock. In Chesterfield, a crew is dispatched immediately to stop the source, pump out standing water and begin drying the same night.</p>
@@ -90,42 +90,38 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Navy features band — verbatim phrases from the doc, no added heading */}
+      {/* 4. Navy features band — bold headings are the doc's FULL verbatim
+          sentences (fix vs the old build's compressions). */}
       <div className="features">
-        <div className="wrap cards3">
+        <div className="wrap features-grid">
           <div className="fcard">
-            <p><strong>Crew dispatched immediately</strong>Call at any hour and a crew is dispatched immediately with pumps, extractors and drying equipment already on the truck.</p>
+            <p><strong>Call at any hour and a crew is dispatched immediately with pumps, extractors and drying equipment already on the truck.</strong></p>
           </div>
           <div className="fcard">
-            <p><strong>Work starts on arrival</strong>The truck carries submersible pumps, truck-mounted and portable extractors, air movers, dehumidifiers and moisture meters, so work starts on arrival instead of after a second trip.</p>
+            <p><strong>The truck carries submersible pumps, truck-mounted and portable extractors, air movers, dehumidifiers and moisture meters, so work starts on arrival instead of after a second trip.</strong></p>
           </div>
           <div className="fcard">
-            <p><strong>Drying checked daily</strong>Drying equipment is set and checked daily until moisture readings are back to normal for the building.</p>
+            <p><strong>Standing water is removed, wet materials that cannot be saved are taken out, and drying equipment is set and checked daily until moisture readings are back to normal for the building.</strong></p>
           </div>
         </div>
       </div>
 
-      {/* 5. Services */}
-      <section>
+      {/* 5. Services — Tulsa .services-grid per group. A 1-service group
+          uses a 1fr grid so its single card still stretches the FULL
+          container width; 3-service groups use the 3-col grid. */}
+      <section className="section">
         <div className="wrap">
           <h2>Water damage services in Chesterfield</h2>
           <p>Every service below is handled by the same crew, so one call covers the job from the first pump-out to the final repair.</p>
           {SERVICE_GROUPS.map((g) => (
             <div className="svc-group" key={g.h3}>
               <h3>{g.h3}</h3>
-              <div className="cards">
+              <div className="services-grid" data-cols={g.slugs.length}>
                 {g.slugs.map((slug) => {
                   const s = bySlug(slug);
-                  // Card image: hero when there is one, else the service's
-                  // remaining clean body image; a service with no image at
-                  // all renders a text-only card (no broken img, no empty
-                  // box, card + link unchanged). 11 slots EMPTY, fix round
-                  // 2026-11-13 — never force a wrong photo here.
-                  const cardImg = serviceCardImage(s);
                   return (
-                    <article className="card" key={slug}>
-                      {cardImg && <img src={cardImg.src} alt={cardImg.alt} width="1200" height="675" loading="lazy" />}
-                      <div className="card-body">
+                    <article className="service-card" key={slug}>
+                      <div className="sc-body">
                         <a className="card-title" href={`/${s.slug}`}>{s.anchor}</a>
                         {g.slugs.length === 1 && <p>{s.summary}</p>}
                       </div>
@@ -139,7 +135,7 @@ export default function HomePage() {
       </section>
 
       {/* 6. Two Chesterfields */}
-      <section>
+      <section className="section">
         <div className="wrap">
           <h2>Two Chesterfields, two different water problems</h2>
           <p>Chesterfield is not one kind of property, and the water problems split along the bluff line.</p>
@@ -157,36 +153,51 @@ export default function HomePage() {
       </section>
 
       {/* 7. Process */}
-      <section className="process">
+      <section className="section process">
         <div className="wrap">
           <h2>What happens after you call</h2>
           <ol className="steps">
             <li>
-              <h3>1. A real person takes the details</h3>
-              <p>You tell us where the water is, where it came from if you know, and whether the power is on. If the source is still running, we talk you through shutting off the main valve or the fixture supply while the crew is on the way.</p>
+              <span className="step-num">01</span>
+              <div>
+                <h3>1. A real person takes the details</h3>
+                <p>You tell us where the water is, where it came from if you know, and whether the power is on. If the source is still running, we talk you through shutting off the main valve or the fixture supply while the crew is on the way.</p>
+              </div>
             </li>
             <li>
-              <h3>2. The crew is dispatched immediately</h3>
-              <p>The truck carries submersible pumps, truck-mounted and portable extractors, air movers, dehumidifiers and moisture meters, so work starts on arrival instead of after a second trip.</p>
+              <span className="step-num">02</span>
+              <div>
+                <h3>2. The crew is dispatched immediately</h3>
+                <p>The truck carries submersible pumps, truck-mounted and portable extractors, air movers, dehumidifiers and moisture meters, so work starts on arrival instead of after a second trip.</p>
+              </div>
             </li>
             <li>
-              <h3>3. Inspection and moisture mapping</h3>
-              <p>We trace how far the water travelled, including inside walls and under flooring, and identify the water category: clean supply water, gray water from appliances, or contaminated water from sewers and floods. That decides what can be dried and what has to come out.</p>
+              <span className="step-num">03</span>
+              <div>
+                <h3>3. Inspection and moisture mapping</h3>
+                <p>We trace how far the water travelled, including inside walls and under flooring, and identify the water category: clean supply water, gray water from appliances, or contaminated water from sewers and floods. That decides what can be dried and what has to come out.</p>
+              </div>
             </li>
             <li>
-              <h3>4. Extraction, drying and cleaning</h3>
-              <p>Standing water is removed, wet materials that cannot be saved are taken out, and drying equipment is set and checked daily until moisture readings are back to normal for the building.</p>
+              <span className="step-num">04</span>
+              <div>
+                <h3>4. Extraction, drying and cleaning</h3>
+                <p>Standing water is removed, wet materials that cannot be saved are taken out, and drying equipment is set and checked daily until moisture readings are back to normal for the building.</p>
+              </div>
             </li>
             <li>
-              <h3>5. Repairs</h3>
-              <p>Once the structure is dry, damaged drywall, insulation, baseboards and flooring are repaired so the room is usable again.</p>
+              <span className="step-num">05</span>
+              <div>
+                <h3>5. Repairs</h3>
+                <p>Once the structure is dry, damaged drywall, insulation, baseboards and flooring are repaired so the room is usable again.</p>
+              </div>
             </li>
           </ol>
         </div>
       </section>
 
       {/* 8. Why water spreads */}
-      <section>
+      <section className="section">
         <div className="wrap">
           <h2>Why water spreads so quickly in West County homes</h2>
           <p>Builders in this part of St. Louis County finished basements with carpet over pad, drywall down to the slab and wood trim. All three act like a wick. An inch of water on the floor can climb a foot or more up the wall within a day. Clay soil outside keeps the foundation damp long after the rain stops, so a basement that looks dry on the surface can still read wet inside the wall cavity.</p>
@@ -195,7 +206,7 @@ export default function HomePage() {
       </section>
 
       {/* 9. Before the crew arrives */}
-      <section>
+      <section className="section">
         <div className="wrap">
           <h2>What to do before the crew arrives</h2>
           <ul className="checklist">
@@ -211,7 +222,7 @@ export default function HomePage() {
       </section>
 
       {/* 10. Cost */}
-      <section>
+      <section className="section">
         <div className="wrap">
           <h2>How much does water damage cleanup cost here?</h2>
           <p>Cost depends on three things: how much area is wet, how clean the water is, and how long it sat. A small clean-water leak caught the same day can stay in the range of several hundred dollars to a couple of thousand. A flooded finished basement, or any job involving sewage, usually runs from a few thousand dollars into five figures once removal and rebuilding are included. After the inspection you get a written scope that lists the work room by room, so you know what you are approving before it starts.</p>
@@ -220,7 +231,7 @@ export default function HomePage() {
       </section>
 
       {/* 11. Insurance */}
-      <section>
+      <section className="section">
         <div className="wrap">
           <h2>Working with your insurance company</h2>
           <p>Most policies cover sudden and accidental water, such as a burst pipe or a failed water heater. Sump overflow and sewer backup normally need a separate water backup endorsement, and rising water from outside falls under a flood policy. We do not decide coverage, but we document the cause, the affected materials and the drying record in the format adjusters expect, which shortens the back-and-forth.</p>
@@ -228,23 +239,18 @@ export default function HomePage() {
       </section>
 
       {/* 12. Where we work */}
-      <section>
+      <section className="section">
         <div className="wrap">
           <h2>Where we work in and around Chesterfield</h2>
-          <p>The crew covers all of Chesterfield in ZIP codes 63017 and 63005, from the neighborhoods off Clarkson Road, Baxter Road, Wild Horse Creek Road and Olive Boulevard to the businesses along Chesterfield Airport Road, Long Road and Swingley Ridge Road. Being based in West County means short drive times to Central Park, Faust Park, the St. Luke's Hospital area and the Valley.</p>
+          <p>The crew covers all of Chesterfield in ZIP codes 63017 and 63005, from the neighborhoods off Clarkson Road, Baxter Road, Wild Horse Creek Road and Olive Boulevard to the businesses along Chesterfield Airport Road, Long Road and Swingley Ridge Road. Being based in West County means short drive times to Central Park, Faust Park, the St. Luke&apos;s Hospital area and the Valley.</p>
         </div>
       </section>
 
       {/* 13. FAQ */}
-      <section className="faq">
-        <div className="wrap">
+      <section className="section faq">
+        <div className="wrap faq-wrap">
           <h2>Chesterfield water damage questions</h2>
-          {FAQ.map((f) => (
-            <div className="faq-item" key={f.q}>
-              <h3>{f.q}</h3>
-              <p>{f.a}</p>
-            </div>
-          ))}
+          <FaqAccordion items={FAQ} />
         </div>
       </section>
 
@@ -253,6 +259,7 @@ export default function HomePage() {
         <div className="wrap">
           <h2>Need help right now?</h2>
           <p>If you need water damage restoration in Chesterfield, MO tonight, call (636) 228-0038. This is an emergency water damage service that answers day and night, and the crew is dispatched immediately. For anything from a damp wall to a flooded lower level, water damage repair in Chesterfield, MO starts with that one call.</p>
+          <a className="cta-phone" href={PHONE_HREF}>{PHONE}</a>
           <div className="btn-row">
             <a className="btn btn-call" href={PHONE_HREF}>{PHONE}</a>
             <a className="btn btn-help" href={PHONE_HREF}>Request Emergency Help</a>

@@ -1,5 +1,5 @@
 import { SITE_URL } from '../../lib/services';
-import { graph, webPageNode } from '../../lib/schema';
+import { breadcrumbNode, graph, webPageNode } from '../../lib/schema';
 import { PAGE_CONTENT } from '../../lib/page-content';
 import DocPage from '../DocPage';
 
@@ -15,26 +15,30 @@ export function generateMetadata() {
       description: c.metaDescription,
       url: '/contact',
       type: 'website',
-      images: [{ url: '/images/chesterfield-hero-water-extraction.webp', width: 1200, height: 675, alt: 'Workers wading through floodwater around a pump truck with hoses and pumping equipment' }],
     },
   };
 }
 
 export default function ContactPage() {
   const canonical = `${SITE_URL}/contact`;
-const breadcrumb = {
-    '@type': 'BreadcrumbList',
-    '@id': `${canonical}#breadcrumb`,
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
-      { '@type': 'ListItem', position: 2, name: 'Contact', item: canonical },
-    ],
-  };
-const pageGraph = graph([webPageNode(canonical, 'Contact'), breadcrumb]);
+  const pageGraph = graph([
+    webPageNode(canonical, 'Contact'),
+    {
+      '@type': 'ContactPage',
+      '@id': `${canonical}#contactpage`,
+      url: canonical,
+      name: 'Contact Our Chesterfield Water Damage Crew',
+      isPartOf: { '@id': `${SITE_URL}/#website` },
+    },
+    breadcrumbNode(canonical, [
+      { name: 'Home', url: `${SITE_URL}/` },
+      { name: 'Contact', url: canonical },
+    ]),
+  ]);
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageGraph) }} />
-      <DocPage page={c} />
+      <DocPage page={c} crumb={c.crumb} />
     </>
   );
 }

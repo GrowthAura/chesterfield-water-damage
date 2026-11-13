@@ -1,7 +1,7 @@
 # Water Damage Restoration Chesterfield MO
 
 Water Damage Restoration Chesterfield, MO — 24/7 emergency water damage restoration.
-Next.js 14 static export (Upgraded Next.js Theme v2). Homepage + 16 service pages.
+Next.js 14 static export (Tulsa 1 theme, converted to JS). Homepage + 16 service pages.
 
 ## Local development
 
