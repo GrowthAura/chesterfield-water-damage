@@ -1,4 +1,5 @@
-import { PHONE, PHONE_HREF, SERVICES, SERVICE_GROUPS, SITE_URL } from '../lib/services';
+import { PHONE, PHONE_HREF, SERVICES, SERVICE_GROUPS, SITE_URL, serviceCardImage } from '../lib/services';
+import { graph, webPageNode } from '../lib/schema';
 
 const FAQ = [
   { q: 'How fast can a crew get to my house in Chesterfield?', a: 'The crew is dispatched immediately when you call, at any hour. Arrival depends on where you are and road conditions, and you are told the expected time on the phone.' },
@@ -9,11 +10,37 @@ const FAQ = [
   { q: 'Do you handle commercial buildings in Chesterfield Valley?', a: 'Yes. Retail, office, medical, warehouse and hangar space are all handled, with after-hours scheduling so tenants can stay open.' },
 ];
 
+// ONE @graph for the homepage, @id-linked: WebPage (with Speakable for the
+// hero intro + FAQ) + FAQPage (6 visible Q+A) + HowTo for the visible
+// 5-step process section "What happens after you call" — step titles/text
+// are the visible step headings + paragraphs, verbatim. Rendered page has
+// 5 steps (DO-DONT-LIST says 6, Round 4 says 5 — the rendered page rules).
+const HOME_URL = `${SITE_URL}/`;
 const faqSchema = {
-  '@context': 'https://schema.org',
   '@type': 'FAQPage',
+  '@id': `${HOME_URL}#faq`,
   mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
 };
+const howToSchema = {
+  '@type': 'HowTo',
+  '@id': `${HOME_URL}#howto`,
+  name: 'What happens after you call',
+  step: [
+    { '@type': 'HowToStep', name: '1. A real person takes the details', text: 'You tell us where the water is, where it came from if you know, and whether the power is on. If the source is still running, we talk you through shutting off the main valve or the fixture supply while the crew is on the way.' },
+    { '@type': 'HowToStep', name: '2. The crew is dispatched immediately', text: 'The truck carries submersible pumps, truck-mounted and portable extractors, air movers, dehumidifiers and moisture meters, so work starts on arrival instead of after a second trip.' },
+    { '@type': 'HowToStep', name: '3. Inspection and moisture mapping', text: 'We trace how far the water travelled, including inside walls and under flooring, and identify the water category: clean supply water, gray water from appliances, or contaminated water from sewers and floods. That decides what can be dried and what has to come out.' },
+    { '@type': 'HowToStep', name: '4. Extraction, drying and cleaning', text: 'Standing water is removed, wet materials that cannot be saved are taken out, and drying equipment is set and checked daily until moisture readings are back to normal for the building.' },
+    { '@type': 'HowToStep', name: '5. Repairs', text: 'Once the structure is dry, damaged drywall, insulation, baseboards and flooring are repaired so the room is usable again.' },
+  ],
+};
+const homeGraph = graph([
+  webPageNode(HOME_URL, 'Water Damage Restoration Chesterfield', {
+    '@type': 'SpeakableSpecification',
+    cssSelector: ['.photo-hero .lede', '.faq-item h3', '.faq-item p'],
+  }),
+  faqSchema,
+  howToSchema,
+]);
 
 function bySlug(slug) {
   return SERVICES.find((s) => s.slug === slug);
@@ -28,7 +55,7 @@ export default function HomePage() {
           hoists them into <head>. Service pages keep their own metadata tags. */}
       <link rel="canonical" href={`${SITE_URL}/`} />
       <meta property="og:url" content={`${SITE_URL}/`} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeGraph) }} />
 
       {/* 1. Hero — full-bleed DARK photographic hero (real-photo round 2026-11-10):
           the real hero photo as background + dark overlay, intro INSIDE the hero,
@@ -89,9 +116,15 @@ export default function HomePage() {
               <div className="cards">
                 {g.slugs.map((slug) => {
                   const s = bySlug(slug);
+                  // Card image: hero when there is one, else the service's
+                  // remaining clean body image; a service with no image at
+                  // all renders a text-only card (no broken img, no empty
+                  // box, card + link unchanged). 11 slots EMPTY, fix round
+                  // 2026-11-13 — never force a wrong photo here.
+                  const cardImg = serviceCardImage(s);
                   return (
-                    <article className={`card${g.slugs.length === 1 ? ' card-wide' : ''}`} key={slug}>
-                      <img src={s.image} alt={s.alt} width="640" height="426" loading="lazy" />
+                    <article className="card" key={slug}>
+                      {cardImg && <img src={cardImg.src} alt={cardImg.alt} width="1200" height="675" loading="lazy" />}
                       <div className="card-body">
                         <a className="card-title" href={`/${s.slug}`}>{s.anchor}</a>
                         {g.slugs.length === 1 && <p>{s.summary}</p>}
